@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <div class="">
+        <div class='nav-contanier '>
+            <div class='navbar '>
+                <div class='navbar-logo'>
+                    <h1 class='logo '>Mutual Fund Prediction</h1>
+                </div>
+                <div class="navigation">
+                    <a href="/" class="nav-link" onclick="showPage('home')">Home</a>
+                    <a href="/investments" class="nav-link">Investments</a>
+                    <a href="javascript:void(0);" class="nav-link" onclick="showPage('recommend')">Recommend Funds</a>
+                    <!-- <a href="#" class="nav-link" onclick="showPage('analytics')">Analytics </a> -->
+                </div>
+            </div>
+        </div> 
+        <hr class=''/>
+        <div class="page" id="home">
+            <div class="dashboard">
+                <div class="card">
+                    <h3>Total Funds</h3>
+                    <span>{{dashboard.totalFunds}}</span>
+                </div>
+                <div class="card">
+                    <h3>Total Categories</h3>
+                    <span>{{dashboard.totalCategories}}</span>
+                </div>
+                <div class="card">
+                    <h3>Total AMC</h3>
+                    <span>{{dashboard.totalAMC}}</span>
+                </div>
+                <div class="card">
+                    <h3>Total Stocks</h3>
+                    <span>{{dashboard.totalStocks}}</span>
+                </div>
+                <div class="card">
+                    <h3>Highest Fund Size</h3>
+                    <span>{{dashboard.highestFundSize}} Cr</span>
+                </div>
+                <div class="card">
+                    <h3>Oldest Fund</h3>
+                    <span>{{dashboard.oldestFund}}</span>
+                </div>
+            </div>
+            <div class="graph-container">
+                <div class="graph-box">
+                    <img src="/static/classification_chart.png" class="img1">
+                    <img src="/static/expense_ratio.png" class="img2">
+                    <img src="/static/average_returns.png" class="img3">
+                    <img src="/static/risk_return.png" class="img4">
+                </div>
+            </div>
+        </div>
+        <div class="page" id="investments">
+            <div class="invest">
+                {% if funds is not none and not funds.empty %}
+                {% for index, fund in funds.iterrows() %}
+                <div class="fund-detail">
+                    <h2>{{fund.fund_name}}</h2>
+                    <div class="fund-data">
+                        <ul class="upper-list list">
+                            <li class="">Scheme Name</li>
+                            <li class="">{{fund.scheme_name}}</li>
+                            <li class="">Category</li>
+                            <li class="">{{fund.category}}</li>
+                            <li class="">Rating</li>
+                            <li class="">{{fund.rating}}</li>
+                            <li class="">Date</li>
+                            <li class="">{{ fund["Inception Date"] }}</li>
+                        </ul>
+                        <ul class="middle-list list">
+                            <div class="amount">
+                                <li class="">Return 1 Year</li>
+                                <li class="">{{fund.return_1_year}}%</li>
+                            </div>
+                            <div class="amount">
+                                <li class="">Return 3 Year</li>
+                                <li class="">{{fund.return_3_year}}%</li>
+                            </div>
+                            <div class="amount">
+                                <li class="">Return 5 Year</li>
+                                <li class="">{{fund.return_5_year}}%</li>
+                            </div>
+                        </ul>
+                    </div>
+                    <div class="fund-button">
+                        <a href="{{ url_for('details', fund_id=fund.id, source='investments') }}">
+                            <button class="button">View Details</button>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="page recommend-form" id="recommend">
+            <div class="recommendForm">
+            <form class='form' action="/recommend" method="POST" onsubmit="return validateForm();">
+                <h2 class="">Recommendation Form</h2>
+                <div class="recommend-input">
+                    <input type="number" class=' input' name="sip" min="0" step="5" placeholder='SIP Monthly' required/>
+                    <select name="risk_level" name="risk_level" class=' input' id="" required>
+                        <option value="">Select Risk</option>
+                        <option value="Equity : Large Cap">Equity</option>
+                        <option value="Debt : Gilt">Debt</option>
+                        <option value="Hybrid : Arbitrage">Hybrid</option>
+                    </select>
+                    <select name="category" id="" class=' input' required>
+                        <option value="">Select Category</option>
+                        <option value="EQ-LC">Large Cap</option>
+                        <option value="EQ-MID">Mid Cap</option>
+                        <option value="EQ-SML">Small Cap</option>
+                        <option value="EQ-FLEX">Flexi Cap</option>
+                        <option value="DT-GILT">Debt: Gilt</option>
+                    </select>
+                    <select name="investment_horizon" class="input" required>
+                        <option value="">Select Horizon</option>
+                        <option value="1 Year">1 Year</option>
+                        <option value="3 Years">3 Years</option>
+                        <option value="5 Years">5 Years</option>
+                    </select>
+                </div>
+                <button class='button' type="submit">Recommend Funds</button>
+            </form>
+        </div>
+        </div>
+        <div class="page container" id="results" >
+            <div class="invest">
+                {% if funds is not none and not funds.empty %}
+                {% for index, fund in funds.iterrows() %}
+                <div class="fund-detail">
+                    <h2>{{fund.fund_name}}</h2>
+                    <div class="fund-data">
+                        <ul class="upper-list list">
+                            <li class="">Scheme Name</li>
+                            <li class="">{{fund.scheme_name}}</li>
+                            <li class="">Category</li>
+                            <li class="">{{fund.category}}</li>
+                            <li class="">Rating</li>
+                            <li class="">{{fund.rating}}</li>
+                            <li class="">Date</li>
+                            <li class="">{{ fund["Inception Date"] }}</li>
+                        </ul>
+                        <ul class="middle-list list">
+                           <div class="amount">
+                                <li class="">Return 1 Year</li>
+                                <li class="">{{fund.return_1_year}}%</li>
+                            </div>
+                            <div class="amount">
+                                <li class="">Return 3 Year</li>
+                                <li class="">{{fund.return_3_year}}%</li>
+                            </div>
+                            <div class="amount">
+                                <li class="">Return 5 Year</li>
+                                <li class="">{{fund.return_5_year}}%</li>
+                            </div>
+                        </ul>
+                    </div>
+                    <div class="fund-button">
+                        <a href="{{ url_for(
+                            'details',
+                            fund_id=fund.id,
+                            source='recommend',
+                            sip=sip,
+                            year=investment_horizon
+                        ) }}">
+                            <button class="button">View Details</button>
+                        </a>
+                        <a href="/predict/{{ fund.id }}?sip={{ sip }}&year={{ investment_horizon }}">
+                            <button class="button">Predict Fund</button>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        {% if fund is defined %}
+        <div class="page" id="funds">
+            <div class="view-details">
+                <div class="chart">
+                    <img src="/static/fund_graph.png" alt="">
+                </div>
+                <div class="fund-detail view-fund-detail">
+                    <h2>Fund Name: {{fund.scheme_name}}</h2>
+                    <div class="fund-data">
+                        <ul class="upper-list-info">
+                            <div class="">
+                                <li class="">Scheme Name</li>
+                                <li class="">{{fund.scheme_name}}</li>
+                            </div>
+                            <div class="">
+                                <li class="">Category</li>
+                                <li class="">{{fund.category}}</li>
+                            </div>
+                            <div class="">
+                                <li class="">Rating</li>
+                                <li class="">{{fund.rating}}</li>
+                            </div>
+                            <div class="">
+                                <li class="">Date</li>
+                                <li class="">{{ fund["Inception Date"] }}</li>
+                            </div>
+                        </ul>
+                        <div class="fund-main-info">
+                            <ul class="middle-list-info">
+                            <li class="">AUM</li>
+                            <li class="">{{fund.aum}}Cr</li>
+                            <li class="">Expense Ratio</li>
+                            <li class="">{{fund.expense_ratio}}%</li>
+                            <li class="">NAV</li>
+                            <li class="">{{ fund.nav }}%</li>
+                            <li class="">Standard Deviation</li>
+                            <li class="">{{ fund.standard_deviation }}5</li>
+                        </ul>
+                        <ul class="lower-list-info">
+                            <li class="">Return 1 Month</li>
+                            <li class="">{{fund.return_1_month}}%</li>
+                            <li class="">Return 1 Year</li>
+                            <li class="">{{fund.return_1_year}}%</li>
+                            <li class="">Return 3 Year</li>
+                            <li class="">{{fund.return_3_year}}%</li>
+                            <li class="">Return 5 Year</li>
+                            <li class="">{{fund.return_5_year}}%</li>
+                        </ul>
+                        </div>
+                    </div>
+                    <div class="fund-button">
+                        {% if source == "investments" %}
+                            <button class="button" onclick="showPage('recommend')">
+                                Recommend Funds
+                            </button>
+                        {% elif source == "recommend" %}
+                            <a href="/predict/{{ fund.id }}?sip={{ sip }}&year={{ investment_horizon }}">
+                                <button class="button">Predict Fund</button>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if total_investment %}
+        <div class="page" id="predict">
+            <div class="predict-result">
+                <div class="predict-container">
+                    <div class="prediction">
+                    <h2>Prediction Result</h2>
+                    <div class="return">
+                        <h3>Total Investment:</h3>
+                        <p>₹{{ "%.2f"|format(total_investment) }}</p>
+                        <h3>Estimated Profit:</h3>
+                        <p>₹{{ "%.2f"|format(estimated_return) }}</p>
+                        <h3>Estimated Final Value:</h3>
+                        <p>₹{{ "%.2f"|format(final_amount) }}</p>
+                    </div>
+                </div>
+                {% if active_page == "predict" %}
+                <div class="sentiment-container">
+                    <div class="sentiment-heading">
+                        <span>Sentiment Analysis</span>
+                    </div>
+                    <div class="sentiments">
+                        {% if sentiment == "Positive" %}
+                            <span class="">
+                                😊 Positive
+                            </span>
+                        {% elif sentiment == "Neutral" %}
+                            <span class="">
+                                😐 Neutral
+                            </span>
+                        {% elif sentiment == "Negative" %}
+                            <span class="">
+                                😞 Negative
+                            </span>
+                        {% else %}
+                            <span class="">
+                                No Sentiment Available
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="chart">
+                <img src="/static/prediction_graph.png" alt="Prediction Graph">
+            </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+    function showPage(pageId){
+        let pages=document.querySelectorAll(".page");
+        pages.forEach(function(page){page.style.display="none"});
+        document.getElementById(pageId).style.display="block";
+    }
+    window.onload=function(){ showPage("{{ active_page }}") }
+    </script>
+    <script>
+        function validateForm() {
+
+            let sip = document.getElementById("sip").value.trim();
+            let risk = document.getElementById("risk_level").value;
+            let category = document.getElementById("category").value;
+            let horizon = document.getElementById("investment_horizon").value;
+
+            if (sip === "") {
+                alert("Please enter SIP amount.");
+                return false;
+            }
+            if (risk === "") {
+                alert("Please select Risk Level.");
+                return false;
+            }
+            if (category === "") {
+                alert("Please select Category.");
+                return false;
+            }
+            if (horizon === "") {
+                alert("Please select Investment Horizon.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>
