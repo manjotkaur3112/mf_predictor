@@ -1,9 +1,15 @@
 import os
 import pandas as pd
 
-path = os.path.join("model", "cleaned_funds.pkl")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-df = pd.read_pickle(path)
+df = pd.read_pickle(
+    os.path.join(BASE_DIR, "model", "cleaned_funds.pkl")
+)
+
+data = pd.read_csv(
+    os.path.join(BASE_DIR, "data", "mutual_funds.csv")
+)
 
 def get_average_returns():
 
