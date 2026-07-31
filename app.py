@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 from flask import Flask, render_template, request
-
-from graphs import get_all_graph_data
+def get_all_graph_data():
+    return {}
 
 app = Flask(__name__)
 BASE_DIR = Path(__file__).resolve().parent
