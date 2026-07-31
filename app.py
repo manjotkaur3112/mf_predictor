@@ -1,20 +1,17 @@
-from flask import Flask, render_template, request
-from graphs import get_all_graph_data
-import pandas as pd
-import pickle
 import os
+import pickle
+from pathlib import Path
+
+import pandas as pd
+from flask import Flask, render_template, request
+
+from graphs import get_all_graph_data
 
 app = Flask(__name__)
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_DIR = BASE_DIR / "model"
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-fund_data = pd.read_pickle(
-    os.path.join(BASE_DIR, "model", "cleaned_funds.pkl")
-)
-
-with open(os.path.join(BASE_DIR, "model", "return_model.pkl"), "rb") as file:
-    model = pickle.load(file)
-
+fund_data = pd.read_pickle(MODEL_DIR / "cleaned_funds.pkl")
 fund_data = fund_data.reset_index(drop=True)
 fund_data["id"] = fund_data.index
 
@@ -29,7 +26,9 @@ dashboard = {
 
 print("Dataset Loaded")
 
-
+with open(MODEL_DIR / "return_model.pkl", "rb") as file:
+    model = pickle.load(file)
+print("Model Loaded")
 
 @app.route("/")
 def home():
@@ -259,4 +258,4 @@ def predict(fund_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
