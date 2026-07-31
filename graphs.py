@@ -44,9 +44,6 @@ def get_risk_return():
 
 
 def get_classification():
-
-    data = pd.read_csv("data/mutual_funds.csv")
-
     data["Main"] = (data["classification"].str.split(":").str[0].str.strip())
 
     counts = data["Main"].value_counts()
