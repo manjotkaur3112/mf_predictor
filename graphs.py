@@ -1,7 +1,9 @@
+import os
 import pandas as pd
 
-df = pd.read_pickle("model/cleaned_funds.pkl")
+path = os.path.join("model", "cleaned_funds.pkl")
 
+df = pd.read_pickle(path)
 
 def get_average_returns():
 
