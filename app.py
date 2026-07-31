@@ -2,10 +2,19 @@ from flask import Flask, render_template, request
 from graphs import get_all_graph_data
 import pandas as pd
 import pickle
+import os
 
 app = Flask(__name__)
 
-fund_data = pd.read_pickle("model/cleaned_funds.pkl")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+fund_data = pd.read_pickle(
+    os.path.join(BASE_DIR, "model", "cleaned_funds.pkl")
+)
+
+with open(os.path.join(BASE_DIR, "model", "return_model.pkl"), "rb") as file:
+    model = pickle.load(file)
+
 fund_data = fund_data.reset_index(drop=True)
 fund_data["id"] = fund_data.index
 
@@ -20,9 +29,7 @@ dashboard = {
 
 print("Dataset Loaded")
 
-with open("model/return_model.pkl", "rb") as file:
-    model = pickle.load(file)
-print("Model Loaded")
+
 
 @app.route("/")
 def home():
