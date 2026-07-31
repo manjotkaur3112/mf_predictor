@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="">
@@ -13,16 +13,21 @@
                 <div class='navbar-logo'>
                     <h1 class='logo '>Mutual Fund Prediction</h1>
                 </div>
-                <div class="navigation">
+                <div class="navigation" id="navlinks">
                     <a href="/" class="nav-link" onclick="showPage('home')">Home</a>
                     <a href="/investments" class="nav-link">Investments</a>
-                    <a href="javascript:void(0);" class="nav-link" onclick="showPage('recommend')">Recommend Funds</a>
-                    <!-- <a href="#" class="nav-link" onclick="showPage('analytics')">Analytics </a> -->
+                    <a href="/recommend" class="nav-link">Recommend Funds</a>
+                </div>
+                <div class="hum-burger" id="humBurger">
+                    <img src="/static/images/hum-burger.png" alt="">
+                </div>
+                <div class="close" id="close">
+                    <img src="/static/images/close.png" alt="">
                 </div>
             </div>
         </div> 
         <hr class=''/>
-        <div class="page" id="home">
+        <div class="page dashboard-container" id="home">
             <div class="dashboard">
                 <div class="card">
                     <h3>Total Funds</h3>
@@ -51,14 +56,28 @@
             </div>
             <div class="graph-container">
                 <div class="graph-box">
-                    <img src="/static/classification_chart.png" class="img1">
-                    <img src="/static/expense_ratio.png" class="img2">
-                    <img src="/static/average_returns.png" class="img3">
-                    <img src="/static/risk_return.png" class="img4">
+                    <div class="chart-box">
+                        <canvas id="classChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="avgChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="riskChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="page" id="investments">
+            <div class="search-container">
+                <form action="/search" method="GET">
+                    <input type="text" name="query" placeholder="Search Scheme Name..." value="{{ request.args.get('query', '') }}" class="search-input">
+                    <button type="submit" class="search-btn button">Search</button>
+                </form>
+            </div>
             <div class="invest">
                 {% if funds is not none and not funds.empty %}
                 {% for index, fund in funds.iterrows() %}
@@ -105,14 +124,14 @@
             <form class='form' action="/recommend" method="POST" onsubmit="return validateForm();">
                 <h2 class="">Recommendation Form</h2>
                 <div class="recommend-input">
-                    <input type="number" class=' input' name="sip" min="0" step="5" placeholder='SIP Monthly' required/>
-                    <select name="risk_level" name="risk_level" class=' input' id="" required>
+                    <input type="number" class=' input' name="sip" min="0" id="sip" placeholder='SIP Monthly' required/>
+                    <select name="risk_level" name="risk_level" class=' input' id="risk_level" required>
                         <option value="">Select Risk</option>
                         <option value="Equity : Large Cap">Equity</option>
                         <option value="Debt : Gilt">Debt</option>
                         <option value="Hybrid : Arbitrage">Hybrid</option>
                     </select>
-                    <select name="category" id="" class=' input' required>
+                    <select name="category" id="category" class=' input' required>
                         <option value="">Select Category</option>
                         <option value="EQ-LC">Large Cap</option>
                         <option value="EQ-MID">Mid Cap</option>
@@ -120,7 +139,7 @@
                         <option value="EQ-FLEX">Flexi Cap</option>
                         <option value="DT-GILT">Debt: Gilt</option>
                     </select>
-                    <select name="investment_horizon" class="input" required>
+                    <select name="investment_horizon" id="investment_horizon" class="input" required>
                         <option value="">Select Horizon</option>
                         <option value="1 Year">1 Year</option>
                         <option value="3 Years">3 Years</option>
@@ -131,7 +150,7 @@
             </form>
         </div>
         </div>
-        <div class="page container" id="results" >
+        <div class="page invest-result" id="results" >
             <div class="invest">
                 {% if funds is not none and not funds.empty %}
                 {% for index, fund in funds.iterrows() %}
@@ -185,11 +204,11 @@
         {% if fund is defined %}
         <div class="page" id="funds">
             <div class="view-details">
-                <div class="chart">
-                    <img src="/static/fund_graph.png" alt="">
+                <div class="chart-box">
+                    <canvas id="fundChart"></canvas>
                 </div>
                 <div class="fund-detail view-fund-detail">
-                    <h2>Fund Name: {{fund.scheme_name}}</h2>
+                    <h2>{{fund.scheme_name}}</h2>
                     <div class="fund-data">
                         <ul class="upper-list-info">
                             <div class="">
@@ -254,11 +273,11 @@
                     <div class="prediction">
                     <h2>Prediction Result</h2>
                     <div class="return">
-                        <h3>Total Investment:</h3>
+                        <h3>Total Investment</h3>
                         <p>₹{{ "%.2f"|format(total_investment) }}</p>
-                        <h3>Estimated Profit:</h3>
+                        <h3>Estimated Profit</h3>
                         <p>₹{{ "%.2f"|format(estimated_return) }}</p>
-                        <h3>Estimated Final Value:</h3>
+                        <h3>Estimated Final Value</h3>
                         <p>₹{{ "%.2f"|format(final_amount) }}</p>
                     </div>
                 </div>
@@ -289,14 +308,39 @@
                 </div>
                 {% endif %}
             </div>
-            <div class="chart">
-                <img src="/static/prediction_graph.png" alt="Prediction Graph">
-            </div>
+            
             </div>
         </div>
         {% endif %}
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="application/json" id="graph-data">
+        {{ graph_data | tojson }}
+    </script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    {% if fund_graph is defined %}
+    <script>
+        window.fundGraph = {{ fund_graph | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/fundChart.js') }}"></script>
+    {% endif %}
+    <script>
+        const humBurger = document.getElementById("humBurger");
+        const close = document.getElementById("close");
+        const navlinks = document.getElementById("navlinks");
+
+        humBurger.addEventListener("click", () => {
+            navlinks.classList.add("active");
+            humBurger.style.display = "none";
+            close.style.display = "block";
+        });
+        close.addEventListener("click", () => {
+            navlinks.classList.remove("active");
+            humBurger.style.display = "block";
+            close.style.display = "none";
+        });
+    </script>
     <script>
     function showPage(pageId){
         let pages=document.querySelectorAll(".page");
@@ -307,7 +351,6 @@
     </script>
     <script>
         function validateForm() {
-
             let sip = document.getElementById("sip").value.trim();
             let risk = document.getElementById("risk_level").value;
             let category = document.getElementById("category").value;

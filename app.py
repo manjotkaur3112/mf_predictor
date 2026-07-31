@@ -1,8 +1,5 @@
 from flask import Flask, render_template, request
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from graphs import generate_all_graphs
+from graphs import get_all_graph_data
 import pandas as pd
 import pickle
 
@@ -31,16 +28,7 @@ print("Model Loaded")
 def home():
     empty_funds = fund_data.iloc[0:0]
 
-    dashboard = {
-        "totalFunds": len(fund_data),
-        "totalCategories": fund_data["category"].nunique(),
-        "totalAMC": fund_data["fund_name"].nunique(),
-        "highestFundSize": fund_data["aum"].max(),
-        "oldestFund": fund_data["Inception Date"].min(),
-        "totalStocks": fund_data["number_of_stocks"].count()
-    }
-
-    generate_all_graphs()
+    graph_data = get_all_graph_data()
 
     return render_template(
         "index.html",
@@ -48,6 +36,32 @@ def home():
         funds=empty_funds,
         fund=None,
         dashboard=dashboard,
+        graph_data=graph_data,
+        sip=None,
+        investment_horizon=None,
+        total_investment=0,
+        estimated_return=0,
+        final_amount=0
+    )
+
+@app.route("/search")
+def search():
+    query = request.args.get("query", "").strip()
+
+    if query:
+        searched_funds = fund_data[fund_data["scheme_name"].str.contains(query, case=False, na=False)]
+    else:
+        searched_funds = fund_data
+
+    graph_data = get_all_graph_data()
+
+    return render_template(
+        "index.html",
+        active_page="investments",
+        dashboard=dashboard,
+        funds=searched_funds,
+        graph_data=graph_data,
+        fund=None,
         sip=None,
         investment_horizon=None,
         total_investment=0,
@@ -57,12 +71,7 @@ def home():
 
 @app.route("/investments")
 def investments():
-
-    dashboard = {
-        "totalFunds": len(fund_data),
-        "averageRating": round(fund_data["rating"].mean(), 1),
-        "totalAUM": round(fund_data["aum"].sum(), 2)
-    }
+    graph_data = get_all_graph_data()
 
     return render_template(
         "index.html",
@@ -70,6 +79,25 @@ def investments():
         dashboard=dashboard,
         funds=fund_data,
         fund=None,
+        graph_data=graph_data,
+        sip=None,
+        investment_horizon=None,
+        total_investment=0,
+        estimated_return=0,
+        final_amount=0
+    )
+
+@app.route("/recommend", methods=["GET"])
+def recommend_page():
+    graph_data = get_all_graph_data()
+
+    return render_template(
+        "index.html",
+        active_page="recommend",
+        dashboard=dashboard,
+        funds=fund_data.iloc[0:0],
+        fund=None,
+        graph_data=graph_data,
         sip=None,
         investment_horizon=None,
         total_investment=0,
@@ -80,26 +108,22 @@ def investments():
 
 @app.route("/recommend", methods=["POST"])
 def recommend():
-
     sip = int(request.form["sip"])
     investment_horizon = request.form["investment_horizon"]
     category = request.form["category"]
-
     recommended_funds = fund_data.copy()
-
     if category:
         recommended_funds = recommended_funds[recommended_funds["category"] == category]
 
     if investment_horizon == "1 Year":
         recommended_funds = recommended_funds.sort_values(by=["rating", "return_1_year"],ascending=False)
-
     elif investment_horizon == "3 Years":
         recommended_funds = recommended_funds.sort_values(by=["rating", "return_3_year"],ascending=False)
-
     else:
         recommended_funds = recommended_funds.sort_values(by=["rating", "return_5_year"],ascending=False)
 
-    recommended_funds = recommended_funds.head(6)
+    recommended_funds = recommended_funds.head(12)
+    graph_data = get_all_graph_data()
 
     return render_template(
         "index.html",
@@ -107,6 +131,7 @@ def recommend():
         active_page="results",
         funds=recommended_funds,
         fund=None,
+        graph_data=graph_data,
         sip=sip,
         investment_horizon=investment_horizon,
         total_investment=0,
@@ -121,30 +146,21 @@ def details(fund_id):
     sip = request.args.get("sip")
     investment_horizon = request.args.get("year")
     selected_fund = fund_data[fund_data["id"] == fund_id].iloc[0]
+    graph_data = get_all_graph_data()
 
-    labels = ["1 Year", "3 Years", "5 Years"]
-
-    values = [selected_fund["return_1_year"], selected_fund["return_3_year"], selected_fund["return_5_year"]]
-
-    plt.figure(figsize=(5,4))
-    plt.plot(labels, values, marker="o", linewidth=3, color="green")
-    plt.fill_between(labels, values, color="lightgreen", alpha=0.4)
-
-    plt.title("Fund Returns")
-    plt.xlabel("Investment Period")
-    plt.ylabel("Return (%)")
-    plt.grid(True)
-
-    plt.tight_layout()
-    plt.savefig("static/fund_graph.png")
-    plt.close()
-
+    fund_graph = {
+        "labels": ['1 Year', '3 Years', '5 Years'],
+        "values": [selected_fund['return_1_year'], selected_fund['return_3_year'], selected_fund['return_5_year']]
+    }
+       
     return render_template(
         "index.html",
         dashboard=dashboard,
         active_page="funds",
         funds=fund_data.iloc[0:0],
         fund=selected_fund,
+        graph_data=graph_data,
+        fund_graph=fund_graph,
         source=source,
         sip=sip,
         investment_horizon=investment_horizon,
@@ -162,11 +178,8 @@ def predict(fund_id):
     sip = int(sip)
     
     investment_horizon = request.args.get("year")
-
     selected_fund = fund_data[fund_data["id"] == fund_id].iloc[0]
-
     expense_ratio = selected_fund["expense_ratio"]
-
     monthly_expense = (sip * expense_ratio) / 100
     annual_expense = monthly_expense * 12
 
@@ -193,7 +206,6 @@ def predict(fund_id):
     })
 
     prediction = model.predict(input_data)
-
     return_1 = prediction[0][0]
     return_3 = prediction[0][1]
     return_5 = prediction[0][2]
@@ -214,31 +226,8 @@ def predict(fund_id):
         sentiment = "Neutral"
     elif estimated_return < 0:
         sentiment = "Negative"
-        
 
-    labels = ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"]
-
-    values = [
-        round(final_amount * 0.2),
-        round(final_amount * 0.4),
-        round(final_amount * 0.6),
-        round(final_amount * 0.8),
-        round(final_amount)
-    ]
-
-    plt.figure(figsize=(6,4))
-
-    plt.plot(labels, values, marker="o", linewidth=3, color="orange")
-    plt.fill_between(labels, values, color="orange", alpha=0.3)
-
-    plt.title("Predicted Growth")
-    plt.xlabel("Years")
-    plt.ylabel("Amount (₹)")
-    plt.grid(True)
-
-    plt.tight_layout()
-    plt.savefig("static/prediction_graph.png")
-    plt.close()
+    graph_data = get_all_graph_data()
 
     return render_template(
         "index.html",
@@ -246,6 +235,7 @@ def predict(fund_id):
         active_page="predict",
         funds=fund_data.iloc[0:0],
         fund=selected_fund,
+        graph_data=graph_data,
         sip=sip,
         investment_horizon=investment_horizon,
         total_investment=total_investment,
