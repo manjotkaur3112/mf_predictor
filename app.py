@@ -2,6 +2,7 @@ import os
 import pickle
 from pathlib import Path
 import traceback
+
 import pandas as pd
 from flask import Flask, render_template, request
 from graphs import get_all_graph_data
@@ -32,7 +33,8 @@ try:
 
     print("Startup completed")
 
-except Exception:
+except Exception as e:
+    print("STARTUP ERROR:", repr(e))
     traceback.print_exc()
     raise
 
@@ -263,5 +265,12 @@ def predict(fund_id):
     )
 
 
+import os
+
 if __name__ == "__main__":
+<<<<<<< HEAD
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+=======
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+>>>>>>> cbb2693 (Stabilize Render deployment)
