@@ -10,7 +10,14 @@ app = Flask(__name__)
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "model"
 
-fund_data = pd.read_pickle(MODEL_DIR / "cleaned_funds.pkl")
+try:
+    fund_data = pd.read_pickle(MODEL_DIR / "cleaned_funds.pkl")
+    print("Dataset Loaded")
+    print("Columns:", fund_data.columns.tolist())
+except Exception as e:
+    import traceback
+    traceback.print_exc()
+    raise
 fund_data = fund_data.reset_index(drop=True)
 fund_data["id"] = fund_data.index
 
@@ -23,11 +30,14 @@ dashboard = {
     "totalStocks": fund_data["number_of_stocks"].sum()
 }
 
-print("Dataset Loaded")
-
-with open(MODEL_DIR / "return_model.pkl", "rb") as file:
-    model = pickle.load(file)
-print("Model Loaded")
+try:
+    with open(MODEL_DIR / "return_model.pkl", "rb") as file:
+        model = pickle.load(file)
+    print("Model Loaded")
+except Exception:
+    import traceback
+    traceback.print_exc()
+    raise
 
 @app.route("/")
 def home():
