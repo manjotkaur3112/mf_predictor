@@ -507,7 +507,7 @@ option:active:hover, select:active:hover{
     .graph-box{
         display: grid;
         grid-template-columns: 1fr;
-        margin: 20px;
+        margin: 40px -10px;
     }
     .invest{
         display: flex;
