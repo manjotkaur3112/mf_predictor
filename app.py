@@ -13,29 +13,26 @@ MODEL_DIR = BASE_DIR / "model"
 try:
     fund_data = pd.read_pickle(MODEL_DIR / "cleaned_funds.pkl")
     print("Dataset Loaded")
-    print("Columns:", fund_data.columns.tolist())
-except Exception as e:
-    import traceback
-    traceback.print_exc()
-    raise
-fund_data = fund_data.reset_index(drop=True)
-fund_data["id"] = fund_data.index
+    print(fund_data.columns.tolist())
 
-dashboard = {
-    "totalFunds": len(fund_data),
-    "totalCategories": fund_data["category"].nunique(),
-    "totalAMC": fund_data["fund_name"].nunique(),
-    "highestFundSize": fund_data["aum"].max(),
-    "oldestFund": fund_data["inception_date"].min(),
-    "totalStocks": fund_data["number_of_stocks"].sum()
-}
+    fund_data = fund_data.reset_index(drop=True)
+    fund_data["id"] = fund_data.index
 
-try:
-    with open(MODEL_DIR / "return_model.pkl", "rb") as file:
-        model = pickle.load(file)
-    print("Model Loaded")
+    dashboard = {
+        "totalFunds": len(fund_data),
+        "totalCategories": fund_data["category"].nunique(),
+        "totalAMC": fund_data["fund_name"].nunique(),
+        "highestFundSize": fund_data["aum"].max(),
+        "oldestFund": fund_data["inception_date"].min(),
+        "totalStocks": fund_data["number_of_stocks"].sum()
+    }
+
+    with open(MODEL_DIR / "return_model.pkl", "rb") as f:
+        model = pickle.load(f)
+
+    print("Startup completed")
+
 except Exception:
-    import traceback
     traceback.print_exc()
     raise
 
