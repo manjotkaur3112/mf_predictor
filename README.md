@@ -1,4 +1,4 @@
-# 📈 Mutual Fund Recommendation & Return Prediction System
+# 📈 Mutual Fund Advisor
 
 A Machine Learning-based web application developed using **Python**, **Flask**, and **Scikit-learn** that recommends suitable mutual funds and predicts expected returns based on historical mutual fund data. The application also includes sentiment analysis and interactive graphical visualizations to help users make informed investment decisions.
 
