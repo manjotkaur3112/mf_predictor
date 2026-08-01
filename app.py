@@ -1,7 +1,7 @@
 import os
 import pickle
 from pathlib import Path
-
+import traceback
 import pandas as pd
 from flask import Flask, render_template, request
 from graphs import get_all_graph_data
