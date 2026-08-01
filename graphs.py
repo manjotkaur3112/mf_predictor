@@ -8,7 +8,13 @@ DATA_DIR = BASE_DIR / "data"
 
 
 def _load_fund_data():
-    df = pd.read_pickle(MODEL_DIR / "cleaned_funds.pkl")
+    csv_path = MODEL_DIR / "cleaned_funds.csv"
+
+    if csv_path.exists():
+        df = pd.read_csv(csv_path)
+    else:
+        raise FileNotFoundError("cleaned_funds.csv was not found.")
+
     df = df.reset_index(drop=True)
 
     numeric_columns = [
@@ -39,7 +45,7 @@ def _load_fund_data():
 
 
 df = _load_fund_data()
-df.to_csv(MODEL_DIR / "cleaned_funds.csv", index=False)
+
 
 def get_average_returns():
     values = [

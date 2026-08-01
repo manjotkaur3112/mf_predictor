@@ -11,8 +11,17 @@ app = Flask(__name__)
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "model"
 
+
+def load_fund_data():
+    csv_path = MODEL_DIR / "cleaned_funds.csv"
+
+    if csv_path.exists():
+        return pd.read_csv(csv_path)
+    raise FileNotFoundError("cleaned_funds.csv was not found.")
+
+
 try:
-    fund_data = pd.read_pickle(MODEL_DIR / "cleaned_funds.pkl")
+    fund_data = load_fund_data()
     print("Dataset Loaded")
     print(fund_data.columns.tolist())
 
