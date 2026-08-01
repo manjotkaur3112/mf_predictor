@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 from flask import Flask, render_template, request
-def get_all_graph_data():
-    return {}
+from graphs import get_all_graph_data
 
 app = Flask(__name__)
 BASE_DIR = Path(__file__).resolve().parent
@@ -20,7 +19,7 @@ dashboard = {
     "totalCategories": fund_data["category"].nunique(),
     "totalAMC": fund_data["fund_name"].nunique(),
     "highestFundSize": fund_data["aum"].max(),
-    "oldestFund": fund_data["Inception Date"].min(),
+    "oldestFund": fund_data["inception_date"].min(),
     "totalStocks": fund_data["number_of_stocks"].sum()
 }
 

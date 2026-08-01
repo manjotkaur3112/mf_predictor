@@ -30,7 +30,7 @@ def _load_fund_data():
         if column in df.columns:
             df[column] = pd.to_numeric(df[column], errors="coerce")
 
-    text_columns = ["fund_name", "scheme_name", "category", "Inception Date"]
+    text_columns = ["fund_name", "scheme_name", "category", "inception_date"]
     for column in text_columns:
         if column in df.columns:
             df[column] = df[column].fillna("").astype(str)
